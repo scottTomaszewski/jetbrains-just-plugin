@@ -33,7 +33,7 @@ class JustCodeBlockLanguageInjector : MultiHostInjector {
         val justFile = context.containingFile as JustFile
         val text = context.text
         val trimmedText = text.trim()
-        if (shellLanguage != null && justFile.isBashAlike() && isShellCode(trimmedText)) {
+        if (shellLanguage != null && justFile.isBashAlike() && isShellCode(trimmedText, justFile.hasShellConfig())) {
             var injectionScript = justFile.getExportedVariables().joinToString(separator = "") { "$it=''\n" }
             val recipeStatement = context.parentOfType<JustRecipeStatement>()
             if (recipeStatement != null) {
@@ -106,7 +106,7 @@ class JustCodeBlockLanguageInjector : MultiHostInjector {
         return mutableListOf(JustCodeBlock::class.java)
     }
 
-    private fun isShellCode(trimmedCode: String): Boolean {
+    private fun isShellCode(trimmedCode: String, fileDeclaresShell: Boolean): Boolean {
         val firstWord = trimmedCode.substringBefore(' ').lowercase()
         if (firstWord in arrayOf("select", "update", "delete", "insert")) {
             return false
@@ -119,6 +119,9 @@ class JustCodeBlockLanguageInjector : MultiHostInjector {
         }
         if (trimmedCode.startsWith("#!")) {
             return false
+        }
+        if (fileDeclaresShell) {
+            return true
         }
         if (trimmedCode.contains("{{") || trimmedCode.contains("}}")) {
             return (trimmedCode.contains("\"{{") || trimmedCode.contains("'{{")) && !trimmedCode.contains(" {{")
