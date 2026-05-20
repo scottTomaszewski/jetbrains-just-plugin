@@ -108,19 +108,22 @@ class JustCodeBlockLanguageInjector : MultiHostInjector {
 
     private fun isShellCode(trimmedCode: String): Boolean {
         val firstWord = trimmedCode.substringBefore(' ').lowercase()
-        if (firstWord in arrayOf("select", "update", "delete", "insert")) { //SQL style
+        if (firstWord in arrayOf("select", "update", "delete", "insert")) {
+            return false
+        }
+        if (trimmedCode.startsWith("#!/usr/bin/env sh")
+            || trimmedCode.startsWith("#!/usr/bin/env bash")
+            || trimmedCode.startsWith("#!/usr/bin/env zsh")
+            || trimmedCode.startsWith("#!/usr/bin/env fish")) {
+            return true
+        }
+        if (trimmedCode.startsWith("#!")) {
             return false
         }
         if (trimmedCode.contains("{{") || trimmedCode.contains("}}")) {
-            // enable highlight for parameter in string
             return (trimmedCode.contains("\"{{") || trimmedCode.contains("'{{")) && !trimmedCode.contains(" {{")
         }
-        // check shell shebang
-        return !trimmedCode.startsWith("#!")
-                || trimmedCode.startsWith("#!/usr/bin/env sh")
-                || trimmedCode.startsWith("#!/usr/bin/env bash")
-                || trimmedCode.startsWith("#!/usr/bin/env zsh")
-                || trimmedCode.startsWith("#!/usr/bin/env fish")
+        return true
     }
 
     private fun isSQLCode(trimmedCode: String): Boolean {
